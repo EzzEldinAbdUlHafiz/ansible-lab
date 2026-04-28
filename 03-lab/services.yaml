@@ -10,9 +10,10 @@
       ignore_errors: yes 
 
     - name: Install the Lighttpd web server package
-      package:
+      apt:
         name: lighttpd
         state: present
+        update_cache: yes
 
     - name: Ensure Lighttpd is started and enabled on boot
       service:
