@@ -1,0 +1,21 @@
+---
+- name: Services Configuration
+  hosts: all
+  become: yes
+  tasks:
+    - name: Stop Nginx service to prevent port 80 conflicts
+      service:
+        name: nginx
+        state: stopped
+      ignore_errors: yes 
+
+    - name: Install the Lighttpd web server package
+      package:
+        name: lighttpd
+        state: present
+
+    - name: Ensure Lighttpd is started and enabled on boot
+      service:
+        name: lighttpd
+        state: started
+        enabled: yes

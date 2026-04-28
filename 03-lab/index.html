@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <title>Server Dashboard</title>
+</head>
+<body>
+    <div class="layout">
+        <header>
+            <h1>Server Status Dashboard</h1>
+            <p style="font-size: 1.8em; color: #8b949e;">Node: {{ host_name }}</p>
+        </header>
+
+        <main>
+            <div class="info-legend">
+                <div class="legend-item"><span class="dot" style="background-color: #39d353;"></span> <span style="color: #39d353;">Healthy</span></div>
+                <div class="legend-item"><span class="dot" style="background-color: #e3b341;"></span> <span style="color: #e3b341;">Warning</span></div>
+                <div class="legend-item"><span class="dot" style="background-color: #f85149;"></span> <span style="color: #f85149;">Danger</span></div>
+            </div>
+
+            {% set lines = stats_output.splitlines() %}
+            {% set cpu_val = lines[0] | float %}
+            {% set ram_val = lines[1] | float %}
+            {% set ram_info = lines[2] %}
+            {% set disk_val = lines[3] | float %}
+            {% set disk_info = lines[4] %}
+
+            <div class="cards-container" style="display: flex; gap: 20px; width: 100%; justify-content: space-around;">
+                
+                <div class="metric-card {% if cpu_val > 90 %}danger{% elif cpu_val > 70 %}warning{% else %}safe{% endif %}">
+                    <div class="metric-label">CPU Load</div>
+                    <div class="metric-value">{{ cpu_val }}%</div>
+                </div>
+
+                <div class="metric-card {% if ram_val > 90 %}danger{% elif ram_val > 70 %}warning{% else %}safe{% endif %}">
+                    <div class="metric-label">Memory Usage</div>
+                    <div class="metric-value">{{ ram_val }}%</div>
+                    <p style="font-size: 0.9em; opacity: 0.8;">{{ ram_info }}</p>
+                </div>
+
+                <div class="metric-card {% if disk_val > 90 %}danger{% elif disk_val > 70 %}warning{% else %}safe{% endif %}">
+                    <div class="metric-label">Disk Space</div>
+                    <div class="metric-value">{{ disk_val }}%</div>
+                    <p style="font-size: 0.9em; opacity: 0.8;">{{ disk_info }}</p>
+                </div>
+
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <h2>{{ display_name }}</h2>
+                <p style="font-size: 1.6em; color: #58a6ff; font-weight: bold;">Digilians DevOps Student</p>
+                <p>Last Sync: {{ update_time }}</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
