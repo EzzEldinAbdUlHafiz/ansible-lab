@@ -1,0 +1,23 @@
+---
+- name: Configure web servers
+  hosts: webservers
+  become: true
+  roles:
+    - role: nginx
+      vars:
+        nginx_port: 8080 # Overriding the default port 80 to 8080
+
+- name: Configure DB servers
+  hosts: dbservers
+  become: true
+  vars:
+    mysql_root_password: 'SecurePass123'
+    mysql_databases:
+      - name: appdb
+    mysql_users:
+      - name: appuser
+        host: '%'
+        password: 'AppPass123'
+        priv: 'appdb.*:ALL'
+  roles:
+    - role: geerlingguy.mysql

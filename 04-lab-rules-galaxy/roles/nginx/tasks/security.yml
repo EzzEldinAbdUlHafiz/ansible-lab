@@ -1,0 +1,7 @@
+---
+- name: Secure nginx configuration file permissions
+  ansible.builtin.file:
+    path: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'

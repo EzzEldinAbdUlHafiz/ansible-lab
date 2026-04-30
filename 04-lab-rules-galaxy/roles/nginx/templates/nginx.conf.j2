@@ -1,0 +1,12 @@
+events {
+    worker_connections {{ nginx_max_connections }};
+}
+
+http {
+    server {
+        listen {{ nginx_port }};
+        server_name {{ inventory_hostname }};
+        root {{ nginx_root }};
+        index index.html;
+    }
+}

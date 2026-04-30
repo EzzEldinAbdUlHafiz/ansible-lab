@@ -1,5 +1,5 @@
 ---
-- name: Setup and Configure Nginx Web Server
+- name: Automate full Nginx web server setup
   hosts: webservers
   become: true
   vars:
@@ -7,21 +7,17 @@
     nginx_root: /var/www/html
 
   tasks:
-    - name: Install nginx using the apt module
-      apt:
+    # 1. Install nginx
+    - name: Install nginx package
+      ansible.builtin.apt:
         name: nginx
         state: present
+        update_cache: true
       tags: install
 
-    - name: Deploy nginx.conf from a Jinja2 template
-      template:
-        src: templates/nginx.conf.j2
-        dest: /etc/nginx/sites-available/default
-      notify: Restart nginx
-      tags: config
-
-    - name: Create the web root directory with correct permissions
-      file:
+    # 3. Create web root directory
+    - name: Create web root directory with correct permissions
+      ansible.builtin.file:
         path: "{{ nginx_root }}"
         state: directory
         owner: www-data
@@ -29,31 +25,48 @@
         mode: '0755'
       tags: config
 
-    - name: Create an index.html file showing server hostname
-      copy:
-        content: "Welcome to {{ inventory_hostname }}"
-        dest: "{{ nginx_root }}/index.html"
+    # 2. Deploy config file via Jinja2 template
+    - name: Deploy nginx configuration from template
+      ansible.builtin.template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/sites-available/default
+      notify: Restart nginx
       tags: config
 
-    - name: Start the nginx service and enable it to start on boot
-      service:
+    # 4. Create an index.html file showing the server hostname
+    - name: Create index.html with server hostname
+      ansible.builtin.copy:
+        content: "<h1>Welcome to {{ inventory_hostname }}!</h1>\n"
+        dest: "{{ nginx_root }}/index.html"
+        owner: www-data
+        group: www-data
+        mode: '0644'
+      tags: config
+
+    # 5. Start and enable nginx service
+    - name: Start and enable nginx service
+      ansible.builtin.service:
         name: nginx
         state: started
         enabled: true
       tags: service
 
-    - name: Verify Web Service Status
+    # Bonus: Verify nginx is serving HTTP on port 80
+    - name: Verify nginx health
       block:
-        - name: Check if Nginx returns 200 OK
-          uri:
+        - name: Check HTTP status code 200
+          ansible.builtin.uri:
             url: "http://localhost:{{ nginx_port }}"
             status_code: 200
+            return_content: true
       rescue:
-        - name: Print error if Nginx is unreachable
-          debug:
-            msg: "Nginx is not responding on port {{ nginx_port }}!"
+        - name: Print helpful error if nginx is down
+          ansible.builtin.debug:
+            msg: "CRITICAL ALERT: Nginx failed to respond with HTTP 200 on port {{ nginx_port }}. Please check the service status."
+
+  # Part 3: Handler for restarting nginx on config change
   handlers:
     - name: Restart nginx
-      service:
+      ansible.builtin.service:
         name: nginx
         state: restarted

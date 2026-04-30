@@ -1,11 +1,14 @@
----
 all:
   children:
-    webservers:
-      hosts:
-        web1:
-          ansible_host: 3.80.164.253
-    dbservers:
-      hosts:
-        db1:
-          ansible_host: 44.203.17.19
+    production:
+      children:
+        webservers:
+          hosts:
+            web01:
+              ansible_host: 34.238.150.255
+            web02:
+              ansible_host: 54.175.75.34
+        dbservers:
+          hosts:
+            db01:
+              ansible_host: 98.80.252.112

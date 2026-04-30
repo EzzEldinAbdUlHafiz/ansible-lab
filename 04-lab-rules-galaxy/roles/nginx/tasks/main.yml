@@ -1,0 +1,40 @@
+---
+# 1. Check if nginx binary exists
+- name: Check if nginx is already installed
+  ansible.builtin.stat:
+    path: /usr/sbin/nginx
+  register: nginx_check
+
+# 2. Install nginx (ONLY if it doesn't exist)
+- name: Install nginx package
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: true
+  when: not nginx_check.stat.exists
+
+# 3. Deploy nginx.conf template
+- name: Deploy nginx configuration
+  ansible.builtin.template:
+    src: nginx.conf.j2  # Relative path
+    dest: /etc/nginx/nginx.conf
+  notify: Restart nginx
+
+# 4. Deploy index.html
+- name: Deploy index.html
+  ansible.builtin.copy:
+    content: "<h1>{{ site_title }}</h1>\n<p>Served by: {{ inventory_hostname }}</p>\n"
+    dest: "{{ nginx_root }}/index.html"
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+# 5. Start and enable service
+- name: Start and enable nginx service
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Apply security configurations
+  ansible.builtin.include_tasks: security.yml
